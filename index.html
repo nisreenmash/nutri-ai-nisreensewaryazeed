@@ -106,10 +106,10 @@
 
             <label data-t="med_label" style="font-weight:bold; color:var(--dark);">الأمراض المزمنة</label>
             <div class="check-group">
-                <label class="check-label"><input type="checkbox" value="diabetes"> <span data-t="med_diab">سكري</span></label>
-                <label class="check-label"><input type="checkbox" value="pressure"> <span data-t="med_bp">ضغط</span></label>
-                <label class="check-label"><input type="checkbox" value="pcos"> <span data-t="med_pcos">تكيس</span></label>
-                <label class="check-label"><input type="checkbox" value="thyroid"> <span data-t="med_thyr">غدة</span></label>
+                <label class="check-label"><input type="checkbox" class="med" value="diabetes"> <span data-t="med_diab">سكري</span></label>
+                <label class="check-label"><input type="checkbox" class="med" value="pressure"> <span data-t="med_bp">ضغط</span></label>
+                <label class="check-label"><input type="checkbox" class="med" value="pcos"> <span data-t="med_pcos">تكيس</span></label>
+                <label class="check-label"><input type="checkbox" class="med" value="thyroid"> <span data-t="med_thyr">غدة</span></label>
             </div>
 
             <label data-t="alg_label" style="font-weight:bold; color:var(--dark);">الحساسيات الغذائية</label>
@@ -210,12 +210,12 @@
     </nav>
 
     <script>
-        // --- TRANSLATION DATA ---
         let currentLang = 'ar';
-        // GLOBAL VARIABLES TO STORE STATUS FOR TRANSLATION
+        // Global status variables
         let currentStatusAr = "--";
         let currentStatusEn = "--";
 
+        // COMPLETE TRANSLATION DICTIONARY
         const txt = {
             profile_title: { ar: "الملف الشخصي", en: "Personal Profile" },
             male: { ar: "ذكر", en: "Male" },
@@ -281,6 +281,7 @@
             }
         };
 
+        // --- SAFE TOGGLE FUNCTION (Prevents undefined) ---
         function toggleLang() {
             currentLang = currentLang === 'ar' ? 'en' : 'ar';
             document.documentElement.lang = currentLang;
@@ -294,11 +295,14 @@
 
             document.querySelectorAll('[data-t]').forEach(el => {
                 const k = el.getAttribute('data-t');
-                if(txt[k]) el.innerText = txt[k][currentLang];
+                // Only update if translation exists, otherwise keep current text
+                if(txt[k] && txt[k][currentLang]) {
+                    el.innerText = txt[k][currentLang];
+                }
             });
 
-            // Update Status specifically using stored variables
-            if(currentStatusAr !== "--") {
+            // Update Status safely
+            if(currentStatusAr !== "--" && currentStatusEn !== "--") {
                 document.getElementById('id-status').innerText = currentLang === 'ar' ? currentStatusAr : currentStatusEn;
             }
 
@@ -344,21 +348,19 @@
                 const data = await res.json();
                 baseTDEE = data.cals;
 
-                // Save statuses for toggleLang
-                currentStatusAr = data.status_ar;
-                currentStatusEn = data.status_en;
+                // Save statuses for toggle
+                currentStatusAr = data.status_ar || "--";
+                currentStatusEn = data.status_en || "--";
 
                 const localBMI = (body.weight / ((body.height/100)**2)).toFixed(1);
                 
                 document.getElementById('id-name').innerText = document.getElementById('u-name').value || "User";
                 document.getElementById('id-weight').innerText = body.weight + " kg";
-                
                 document.getElementById('id-bmi').innerText = data.bmi || localBMI;
                 document.getElementById('id-bmr').innerText = (data.bmr || Math.round(data.cals / 1.5)) + " kcal";
                 document.getElementById('id-cals').innerText = data.cals + " kcal";
                 
-                // Display correct status
-                document.getElementById('id-status').innerText = currentLang === 'ar' ? data.status_ar : data.status_en;
+                document.getElementById('id-status').innerText = currentLang === 'ar' ? currentStatusAr : currentStatusEn;
                 document.getElementById('id-ideal').innerText = data.perfectW + " kg";
                 document.getElementById('id-diff').innerText = data.diff + " kg";
 
@@ -366,7 +368,7 @@
                 renderDynamicWorkout();
                 nav('pg-food', document.querySelectorAll('.nav-item')[1]);
             } catch(e) {
-                alert("Server Connection Error. Ensure 'node app.js' is running.");
+                alert("Server Connection Error.");
             }
         }
 
