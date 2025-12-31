@@ -1,0 +1,502 @@
+<!DOCTYPE html>
+<html lang="ar" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Nutri-AI | Medical & Fitness</title>
+    <link href="https://fonts.googleapis.com/css2?family=Cairo:wght@400;600;700;900&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    
+    <style>
+        :root { --bg: #f0f2f5; --card: #fff; --main: #27ae60; --dark: #2c3e50; }
+        body { font-family: 'Cairo', sans-serif; background: var(--bg); color: var(--dark); margin: 0; padding-bottom: 90px; transition: 0.3s; }
+        html[lang="en"] body { font-family: 'Segoe UI', sans-serif; }
+
+        .header { background: var(--dark); padding: 15px 20px; color: white; display: flex; justify-content: space-between; align-items: center; }
+        .lang-btn { background: rgba(255,255,255,0.2); color: white; border: 1px solid rgba(255,255,255,0.5); padding: 5px 15px; border-radius: 20px; cursor: pointer; font-size: 0.9rem; transition: 0.3s; }
+        .lang-btn:hover { background: var(--main); border-color: var(--main); }
+
+        .container { padding: 20px; max-width: 600px; margin: 0 auto; display: none; }
+        .active-page { display: block; animation: fadeIn 0.4s ease-out; }
+        @keyframes fadeIn { from { opacity: 0; transform: translateY(10px); } to { opacity: 1; transform: translateY(0); } }
+
+        .card { background: var(--card); border-radius: 20px; padding: 20px; margin-bottom: 15px; box-shadow: 0 4px 15px rgba(0,0,0,0.04); }
+        .section-head { font-weight: 800; color: var(--olive-dark); margin-bottom: 15px; font-size: 1.1rem; display: flex; align-items: center; gap: 8px; }
+        
+        input, select { width: 100%; padding: 14px; border-radius: 12px; border: 1px solid #ddd; background: #fff; font-family: inherit; font-size: 1rem; margin-bottom: 10px; box-sizing: border-box; }
+        .btn-main { width: 100%; background: var(--main); color: white; padding: 16px; border-radius: 14px; border: none; font-weight: 700; cursor: pointer; margin-top: 15px; transition: 0.2s; }
+        .btn-main:active { transform: scale(0.98); }
+
+        /* ID Card */
+        .id-card { background: linear-gradient(135deg, #2c3e50, #4ca1af); color: white; border-radius: 15px; padding: 20px; margin-bottom: 15px; }
+        .id-row { display: flex; justify-content: space-between; margin-bottom: 8px; border-bottom: 1px solid rgba(255,255,255,0.1); padding-bottom: 5px; }
+        .id-val { font-weight: bold; }
+
+        /* Meal Cards */
+        .day-section { margin-top: 30px; border-top: 2px dashed #eee; padding-top: 20px; }
+        .day-title { text-align: center; font-weight: 900; background: #e8f5e9; padding: 8px; border-radius: 8px; color: var(--dark); margin-bottom: 10px; }
+        .meal-card { border-inline-start: 5px solid var(--main); padding: 15px; background: white; margin-bottom: 10px; position: relative; border-radius: 8px; box-shadow: 0 2px 5px rgba(0,0,0,0.05); }
+        .regen-btn { position: absolute; inset-inline-end: 10px; top: 15px; background: #f0f0f0; border: none; width: 30px; height: 30px; border-radius: 50%; cursor: pointer; color: #555; }
+
+        /* Checkboxes */
+        .check-group { display: flex; flex-wrap: wrap; gap: 10px; margin-bottom: 15px; border: 1px solid #eee; padding: 10px; border-radius: 10px; }
+        .check-label { font-size: 0.9rem; cursor: pointer; display: flex; align-items: center; gap: 5px; }
+
+        /* Workout Table */
+        .wo-table { width: 100%; border-collapse: collapse; font-size: 0.85rem; }
+        .wo-table th { background: var(--dark); color: white; padding: 10px; border-radius: 8px 8px 0 0; }
+        .wo-table td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: top; }
+        .wo-row:nth-child(even) { background: #f9f9f9; }
+
+        /* Chat */
+        #chat-box { height: 50vh; overflow-y: auto; background: #f4f6f8; padding: 15px; border-radius: 20px; border: 1px solid #eee; margin-bottom: 10px; }
+        .msg { padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; max-width: 85%; }
+        .ai { background: white; border: 1px solid #ddd; border-radius: 18px 18px 18px 0; }
+        .user { background: var(--main); color: white; margin-inline-start: auto; border-radius: 18px 18px 0 18px; }
+        .typing { font-size: 0.8rem; color: #888; font-style: italic; display: none; margin: 0 15px; }
+
+        .nav-bar { position: fixed; bottom: 0; width: 100%; background: white; border-top: 1px solid #eee; display: flex; justify-content: space-around; padding: 15px 0; z-index: 999; }
+        .nav-item { font-size: 1.5rem; color: #ccc; cursor: pointer; }
+        .active-nav { color: var(--main); transform: translateY(-5px); }
+
+        @media print {
+            .nav-bar, .header, #pg-setup, #pg-chat, #pg-gym, .regen-btn, .btn-main { display: none !important; }
+            .container { display: block !important; }
+            body { background: white; padding: 0; }
+            .card { box-shadow: none; border: 1px solid #ddd; }
+            .id-card { background: white; color: black; border: 2px solid #000; }
+            .id-row { border-color: #ccc; }
+            #pg-food { margin: 0; max-width: 100%; }
+        }
+    </style>
+</head>
+<body>
+
+    <div class="header">
+        <div style="font-weight:bold; font-size:1.2rem;">Nutri-AI</div>
+        <button class="lang-btn" onclick="toggleLang()">English / العربية</button>
+    </div>
+
+    <div id="pg-setup" class="container active-page">
+        <div class="card">
+            <div class="section-head"><i class="fas fa-id-card"></i> <span data-t="profile_title">الملف الشخصي</span></div>
+            <input type="text" id="u-name" placeholder="الاسم الكامل">
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="u-w" placeholder="الوزن (kg)">
+                <input type="number" id="u-h" placeholder="الطول (cm)">
+            </div>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="u-a" placeholder="العمر">
+                <select id="u-gender" style="flex:1">
+                    <option value="male" data-t="male">ذكر</option>
+                    <option value="female" data-t="female">أنثى</option>
+                </select>
+            </div>
+            
+            <label style="color:var(--main); font-weight:bold;" data-t="inbody_label">نتائج InBody (اختياري)</label>
+            <input type="number" id="u-bf" placeholder="%">
+            
+            <label data-t="days_label">أيام التمرين</label>
+            <select id="u-days">
+                <option value="0" data-t="day_0">0 أيام (بدون تمرين)</option>
+                <option value="3" data-t="day_3">3 أيام (كامل الجسم)</option>
+                <option value="4" data-t="day_4">4 أيام (علوي/سفلي)</option>
+                <option value="5" data-t="day_5">5 أيام (دفع/سحب/أرجل)</option>
+            </select>
+
+            <label data-t="med_label" style="font-weight:bold; color:var(--dark);">الأمراض المزمنة</label>
+            <div class="check-group">
+                <label class="check-label"><input type="checkbox" value="diabetes"> <span data-t="med_diab">سكري</span></label>
+                <label class="check-label"><input type="checkbox" value="pressure"> <span data-t="med_bp">ضغط</span></label>
+                <label class="check-label"><input type="checkbox" value="pcos"> <span data-t="med_pcos">تكيس</span></label>
+                <label class="check-label"><input type="checkbox" value="thyroid"> <span data-t="med_thyr">غدة</span></label>
+            </div>
+
+            <label data-t="alg_label" style="font-weight:bold; color:var(--dark);">الحساسيات الغذائية</label>
+            <div class="check-group">
+                <label class="check-label"><input type="checkbox" class="alg" value="gluten"> <span data-t="alg_gluten">غلوتين</span></label>
+                <label class="check-label"><input type="checkbox" class="alg" value="lactose"> <span data-t="alg_lactose">لاكتوز</span></label>
+                <label class="check-label"><input type="checkbox" class="alg" value="nuts"> <span data-t="alg_nuts">مكسرات</span></label>
+            </div>
+
+            <label data-t="activity_label">مستوى النشاط</label>
+            <select id="u-activity">
+                <option value="1.2" data-t="act_1">خامل</option>
+                <option value="1.375" data-t="act_2">خفيف</option>
+                <option value="1.55" data-t="act_3">متوسط</option>
+                <option value="1.725" data-t="act_4">عالي</option>
+            </select>
+
+            <label data-t="goal_label">الهدف</label>
+            <select id="u-goal">
+                <option value="cut" data-t="goal_cut">خسارة دهون</option>
+                <option value="maintain" data-t="goal_maint">محافظة</option>
+                <option value="bulk" data-t="goal_bulk">بناء عضل</option>
+            </select>
+
+            <button class="btn-main" onclick="generatePlan()" data-t="btn_gen">إنشاء الخطة</button>
+        </div>
+    </div>
+
+    <div id="pg-food" class="container">
+        <div class="id-card">
+            <div style="text-align:center; font-weight:bold; font-size:1.2rem; margin-bottom:10px;" data-t="id_title">🆔 البطاقة الصحية</div>
+            <div class="id-row"><span data-t="id_name">الاسم:</span> <span class="id-val" id="id-name">User</span></div>
+            <div class="id-row"><span data-t="id_weight">الوزن:</span> <span class="id-val" id="id-weight">0 kg</span></div>
+            
+            <div class="id-row"><span data-t="id_ideal">الوزن المثالي:</span> <span class="id-val" id="id-ideal">-- kg</span></div>
+            <div class="id-row"><span data-t="id_diff">للوصول للمثالي:</span> <span class="id-val" id="id-diff">-- kg</span></div>
+            
+            <div class="id-row"><span>BMI:</span> <span class="id-val" id="id-bmi">--</span></div>
+            <div class="id-row"><span data-t="id_status">الحالة:</span> <span class="id-val" id="id-status">--</span></div>
+            <div class="id-row"><span>BMR:</span> <span class="id-val" id="id-bmr">-- kcal</span></div>
+            
+            <div class="id-row" style="border:none; margin-top:10px; justify-content:center; font-size:1.1rem; background:rgba(0,0,0,0.2); padding:10px; border-radius:10px;">
+                <span data-t="id_needs">الاحتياج:</span> <span id="id-cals" style="color:#f1c40f; margin-inline-start:5px;">0</span>
+            </div>
+        </div>
+
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <h3 class="section-head" style="margin:0;" data-t="week_title">الجدول الأسبوعي</h3>
+            <button class="btn-main" style="width:auto; padding:8px 15px; font-size:0.9rem;" onclick="window.print()" data-t="btn_print">🖨️ طباعة</button>
+        </div>
+        
+        <div id="meals-list"></div>
+    </div>
+
+    <div id="pg-gym" class="container">
+        <div class="card" style="background:#f0fff4; border:1px solid #27ae60;">
+            <div class="section-head"><i class="fas fa-fire"></i> <span data-t="active_title">نشاط اليوم</span></div>
+            <label data-t="active_label">أدخل السعرات المحروقة:</label>
+            <div style="display:flex; gap:10px;">
+                <input type="number" id="active-cals" placeholder="350" style="margin:0;">
+                <button class="btn-main" onclick="adjustCalories()" style="margin:0; width:auto;" data-t="btn_adjust">تعديل</button>
+            </div>
+        </div>
+
+        <div class="card">
+            <div class="section-head"><i class="fas fa-dumbbell"></i> <span data-t="workout_title">جدول التمرين</span></div>
+            <div id="workout-info" style="margin-bottom:15px; font-weight:bold; color:#555;"></div>
+            <table class="wo-table">
+                <thead><tr><th data-t="th_day">اليوم</th><th data-t="th_focus">التركيز</th><th data-t="th_ex">التمارين</th></tr></thead>
+                <tbody id="wo-body"></tbody>
+            </table>
+        </div>
+        
+        <div class="card">
+            <h3 data-t="update_title">تحديث الوزن</h3>
+            <input type="number" id="new-weight" placeholder="kg">
+            <button class="btn-main" onclick="updateWeight()" data-t="btn_update">تحديث</button>
+        </div>
+    </div>
+
+    <div id="pg-chat" class="container">
+        <div class="section-head" data-t="chat_title">المستشار الذكي (AI)</div>
+        <div id="chat-box">
+            <div class="msg ai" data-t="chat_welcome">أهلاً بك! أنا دكتور أوليف.</div>
+        </div>
+        <div id="typing" class="typing" data-t="chat_typing">جاري البحث...</div>
+        <div style="display:flex; gap:10px;">
+            <input type="text" id="chat-input" placeholder="..." style="border-radius:25px;">
+            <button onclick="sendMsg()" style="width:50px; background:var(--main); color:white; border:none; border-radius:50%;"><i class="fas fa-paper-plane"></i></button>
+        </div>
+    </div>
+
+    <nav class="nav-bar">
+        <div class="nav-item active-nav" onclick="nav('pg-setup', this)"><i class="fas fa-user-cog"></i></div>
+        <div class="nav-item" onclick="nav('pg-food', this)"><i class="fas fa-utensils"></i></div>
+        <div class="nav-item" onclick="nav('pg-gym', this)"><i class="fas fa-dumbbell"></i></div>
+        <div class="nav-item" onclick="nav('pg-chat', this)"><i class="fas fa-comments"></i></div>
+    </nav>
+
+    <script>
+        // --- TRANSLATION DATA ---
+        let currentLang = 'ar';
+        // GLOBAL VARIABLES TO STORE STATUS FOR TRANSLATION
+        let currentStatusAr = "--";
+        let currentStatusEn = "--";
+
+        const txt = {
+            profile_title: { ar: "الملف الشخصي", en: "Personal Profile" },
+            male: { ar: "ذكر", en: "Male" },
+            female: { ar: "أنثى", en: "Female" },
+            inbody_label: { ar: "نتائج InBody (اختياري)", en: "InBody Results (Optional)" },
+            days_label: { ar: "أيام التمرين", en: "Workout Days" },
+            day_0: { ar: "0 أيام (بدون تمرين)", en: "0 Days (No Workout)" },
+            day_3: { ar: "3 أيام (كامل الجسم)", en: "3 Days (Full Body)" },
+            day_4: { ar: "4 أيام (علوي/سفلي)", en: "4 Days (Upper/Lower)" },
+            day_5: { ar: "5 أيام (دفع/سحب/أرجل)", en: "5 Days (PPL)" },
+            med_label: { ar: "الأمراض المزمنة", en: "Chronic Diseases" },
+            med_diab: { ar: "سكري", en: "Diabetes" },
+            med_bp: { ar: "ضغط", en: "Blood Pressure" },
+            med_pcos: { ar: "تكيس", en: "PCOS" },
+            med_thyr: { ar: "غدة", en: "Thyroid" },
+            alg_label: { ar: "الحساسيات الغذائية", en: "Food Allergies" },
+            alg_gluten: { ar: "غلوتين", en: "Gluten" },
+            alg_lactose: { ar: "لاكتوز", en: "Lactose" },
+            alg_nuts: { ar: "مكسرات", en: "Nuts" },
+            activity_label: { ar: "مستوى النشاط", en: "Activity Level" },
+            act_1: { ar: "خامل", en: "Sedentary" },
+            act_2: { ar: "خفيف", en: "Light" },
+            act_3: { ar: "متوسط", en: "Moderate" },
+            act_4: { ar: "عالي", en: "High" },
+            goal_label: { ar: "الهدف", en: "Goal" },
+            goal_cut: { ar: "خسارة دهون", en: "Fat Loss" },
+            goal_maint: { ar: "محافظة", en: "Maintenance" },
+            goal_bulk: { ar: "بناء عضل", en: "Muscle Build" },
+            btn_gen: { ar: "إنشاء الخطة", en: "Generate Plan" },
+            id_title: { ar: "🆔 البطاقة الصحية", en: "🆔 Health ID Card" },
+            id_name: { ar: "الاسم:", en: "Name:" },
+            id_weight: { ar: "الوزن:", en: "Weight:" },
+            id_ideal: { ar: "الوزن المثالي:", en: "Ideal Weight:" },
+            id_diff: { ar: "للوصول للمثالي:", en: "To Ideal:" },
+            id_status: { ar: "الحالة:", en: "Status:" },
+            id_needs: { ar: "الاحتياج:", en: "Daily Needs:" },
+            week_title: { ar: "الجدول الأسبوعي", en: "Weekly Plan" },
+            btn_print: { ar: "🖨️ طباعة", en: "🖨️ Print" },
+            active_title: { ar: "نشاط اليوم", en: "Daily Activity" },
+            active_label: { ar: "أدخل السعرات المحروقة:", en: "Enter Active Calories:" },
+            btn_adjust: { ar: "تعديل", en: "Adjust" },
+            workout_title: { ar: "جدول التمرين", en: "Workout Plan" },
+            th_day: { ar: "اليوم", en: "Day" },
+            th_focus: { ar: "التركيز", en: "Focus" },
+            th_ex: { ar: "التمارين", en: "Exercises" },
+            update_title: { ar: "تحديث الوزن", en: "Update Weight" },
+            btn_update: { ar: "تحديث", en: "Update" },
+            chat_title: { ar: "المستشار الذكي (AI)", en: "AI Advisor" },
+            chat_welcome: { ar: "أهلاً بك! أنا دكتور أوليف.", en: "Welcome! I am Dr. Olive." },
+            chat_typing: { ar: "جاري البحث...", en: "Searching..." },
+            w_rest: { ar: "راحة / نشاط يومي", en: "Rest / Daily Activity" },
+            w_walk: { ar: "مشي 8,000 خطوة", en: "Walk 8,000 steps" },
+            w_upper: { ar: "علوي", en: "Upper Body" },
+            w_lower: { ar: "سفلي", en: "Lower Body" },
+            w_full: { ar: "شامل", en: "Full Body" },
+            m_break: { ar: "فطور", en: "Breakfast" },
+            m_lunch: { ar: "غداء", en: "Lunch" },
+            m_dinner: { ar: "عشاء", en: "Dinner" },
+            m_snack: { ar: "سناك", en: "Snack" },
+            days: {
+                ar: ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"],
+                en: ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]
+            }
+        };
+
+        function toggleLang() {
+            currentLang = currentLang === 'ar' ? 'en' : 'ar';
+            document.documentElement.lang = currentLang;
+            document.documentElement.dir = currentLang === 'ar' ? 'rtl' : 'ltr';
+            
+            document.getElementById('u-name').placeholder = currentLang === 'ar' ? "الاسم" : "Name";
+            document.getElementById('u-w').placeholder = currentLang === 'ar' ? "الوزن (kg)" : "Weight (kg)";
+            document.getElementById('u-h').placeholder = currentLang === 'ar' ? "الطول (cm)" : "Height (cm)";
+            document.getElementById('u-a').placeholder = currentLang === 'ar' ? "العمر" : "Age";
+            document.getElementById('chat-input').placeholder = currentLang === 'ar' ? "اكتب سؤالك..." : "Ask here...";
+
+            document.querySelectorAll('[data-t]').forEach(el => {
+                const k = el.getAttribute('data-t');
+                if(txt[k]) el.innerText = txt[k][currentLang];
+            });
+
+            // Update Status specifically using stored variables
+            if(currentStatusAr !== "--") {
+                document.getElementById('id-status').innerText = currentLang === 'ar' ? currentStatusAr : currentStatusEn;
+            }
+
+            if(document.getElementById('meals-list').innerHTML !== "") {
+                render7DayPlan();
+                renderDynamicWorkout();
+            }
+        }
+
+        let chatHistory = [{ role: "system", content: "Init" }];
+        let baseTDEE = 0;
+
+        function nav(p, btn) {
+            document.querySelectorAll('.container').forEach(c => c.classList.remove('active-page'));
+            document.getElementById(p).classList.add('active-page');
+            document.querySelectorAll('.nav-item').forEach(i => i.classList.remove('active-nav'));
+            btn.classList.add('active-nav');
+        }
+
+        async function generatePlan() {
+            const w = document.getElementById('u-w').value;
+            const h = document.getElementById('u-h').value;
+            const a = document.getElementById('u-a').value;
+            
+            if(!w || !h || !a) {
+                const msg = currentLang==='ar' ? "الرجاء تعبئة جميع الحقول المطلوبة!" : "Please fill all required fields!";
+                alert(msg);
+                return;
+            }
+
+            const body = {
+                weight: parseFloat(w),
+                height: parseFloat(h),
+                age: parseFloat(a),
+                gender: document.getElementById('u-gender').value,
+                bf: parseFloat(document.getElementById('u-bf').value) || 0,
+                activity: document.getElementById('u-activity').value,
+                goal: document.getElementById('u-goal').value
+            };
+
+            try {
+                const res = await fetch('/api/calculate', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify(body) });
+                const data = await res.json();
+                baseTDEE = data.cals;
+
+                // Save statuses for toggleLang
+                currentStatusAr = data.status_ar;
+                currentStatusEn = data.status_en;
+
+                const localBMI = (body.weight / ((body.height/100)**2)).toFixed(1);
+                
+                document.getElementById('id-name').innerText = document.getElementById('u-name').value || "User";
+                document.getElementById('id-weight').innerText = body.weight + " kg";
+                
+                document.getElementById('id-bmi').innerText = data.bmi || localBMI;
+                document.getElementById('id-bmr').innerText = (data.bmr || Math.round(data.cals / 1.5)) + " kcal";
+                document.getElementById('id-cals').innerText = data.cals + " kcal";
+                
+                // Display correct status
+                document.getElementById('id-status').innerText = currentLang === 'ar' ? data.status_ar : data.status_en;
+                document.getElementById('id-ideal').innerText = data.perfectW + " kg";
+                document.getElementById('id-diff').innerText = data.diff + " kg";
+
+                render7DayPlan();
+                renderDynamicWorkout();
+                nav('pg-food', document.querySelectorAll('.nav-item')[1]);
+            } catch(e) {
+                alert("Server Connection Error. Ensure 'node app.js' is running.");
+            }
+        }
+
+        function adjustCalories() {
+            const activeBurn = parseFloat(document.getElementById('active-cals').value);
+            if (!activeBurn) return;
+            const newTotal = baseTDEE + activeBurn;
+            document.getElementById('id-cals').innerText = newTotal + " kcal";
+            const msg = currentLang==='ar' ? "تم التعديل!" : "Adjusted!";
+            alert(msg);
+        }
+
+        function updateWeight() {
+            const newW = document.getElementById('new-weight').value;
+            if(newW) {
+                document.getElementById('u-w').value = newW;
+                generatePlan();
+                const msg = currentLang==='ar' ? "تم التحديث!" : "Updated!";
+                alert(msg);
+            }
+        }
+
+        function renderDynamicWorkout() {
+            const freq = document.getElementById('u-days').value;
+            const tbody = document.getElementById('wo-body');
+            const info = document.getElementById('workout-info');
+            tbody.innerHTML = "";
+            let schedule = [];
+            const dNames = txt.days[currentLang];
+
+            if(freq == "0") {
+                info.innerText = currentLang === 'ar' ? "بدون تمرين (نشاط حركي)" : "No Gym (Daily Activity)";
+                schedule = dNames.map(d => ({d: d, f: txt.w_rest[currentLang], ex: txt.w_walk[currentLang]}));
+            } else if(freq == "3") {
+                info.innerText = "3 Days (Full Body)";
+                schedule = [
+                    {d: dNames[0], f: txt.w_full[currentLang], ex: "Squats, Bench, Rows"},
+                    {d: dNames[1], f: "Rest", ex: "Walk"},
+                    {d: dNames[2], f: txt.w_full[currentLang], ex: "Deadlift, OHP, Pullups"},
+                    {d: dNames[3], f: "Rest", ex: "Walk"},
+                    {d: dNames[4], f: txt.w_full[currentLang], ex: "Lunges, Dips"},
+                    {d: dNames[5], f: "Cardio", ex: "30 min Run"},
+                    {d: dNames[6], f: "Rest", ex: "Recovery"}
+                ];
+            } else {
+                info.innerText = "Split Routine (Upper/Lower)";
+                schedule = dNames.map(d => ({d: d, f: "Mixed", ex: "Custom Routine"})); 
+            }
+
+            schedule.forEach(s => {
+                tbody.innerHTML += `<tr class="wo-row"><td>${s.d}</td><td style="color:var(--main); font-weight:bold;">${s.f}</td><td>${s.ex}</td></tr>`;
+            });
+        }
+
+        async function render7DayPlan() {
+            const list = document.getElementById('meals-list');
+            list.innerHTML = "";
+            const dNames = txt.days[currentLang];
+            const algs = Array.from(document.querySelectorAll('.alg:checked')).map(c => c.value);
+            const dis = Array.from(document.querySelectorAll('.med:checked')).map(c => c.value);
+
+            for (let day of dNames) {
+                let html = `<div class="day-section"><div class="day-title">${day}</div>`;
+                for (let type of ['breakfast', 'lunch', 'dinner', 'snacks']) {
+                    const res = await fetch('/api/regen-meal', { 
+                        method: 'POST', 
+                        headers: {'Content-Type': 'application/json'}, 
+                        body: JSON.stringify({ type, allergies: algs, diseases: dis }) 
+                    });
+                    const meal = await res.json();
+                    
+                    const tKey = type==='breakfast'?'m_break':type==='lunch'?'m_lunch':type==='dinner'?'m_dinner':'m_snack';
+                    const title = txt[tKey][currentLang];
+                    const name = currentLang==='ar' ? meal.name_ar : meal.name_en;
+                    const desc = currentLang==='ar' ? meal.desc_ar : meal.desc_en;
+
+                    html += `<div class="meal-card">
+                        <div style="font-weight:bold; color:var(--main); font-size:0.9rem;">${title}</div>
+                        <div style="font-weight:900;">${name}</div>
+                        <div style="font-size:0.9rem; color:#666;">${desc} | ${meal.cal} cal</div>
+                        <button class="regen-btn" onclick="regenOne(this, '${type}')"><i class="fas fa-sync-alt"></i></button>
+                    </div>`;
+                }
+                list.innerHTML += html + `</div>`;
+            }
+        }
+
+        async function regenOne(btn, type) {
+            btn.innerHTML = "...";
+            const algs = Array.from(document.querySelectorAll('.alg:checked')).map(c => c.value);
+            const dis = Array.from(document.querySelectorAll('.med:checked')).map(c => c.value);
+            
+            const res = await fetch('/api/regen-meal', { method: 'POST', headers: {'Content-Type': 'application/json'}, body: JSON.stringify({ type, allergies: algs, diseases: dis }) });
+            const meal = await res.json();
+            const card = btn.parentElement;
+            
+            const name = currentLang==='ar' ? meal.name_ar : meal.name_en;
+            const desc = currentLang==='ar' ? meal.desc_ar : meal.desc_en;
+
+            card.querySelector('div:nth-child(2)').innerText = name;
+            card.querySelector('div:nth-child(3)').innerText = `${desc} | ${meal.cal} cal`;
+            btn.innerHTML = `<i class="fas fa-sync-alt"></i>`;
+        }
+
+        async function sendMsg() {
+            const inp = document.getElementById('chat-input');
+            const box = document.getElementById('chat-box');
+            const typing = document.getElementById('typing');
+            
+            if(!inp.value) return;
+            
+            box.innerHTML += `<div class="msg user">${inp.value}</div>`;
+            chatHistory.push({ role: "user", content: inp.value });
+            inp.value = "";
+            box.scrollTop = box.scrollHeight;
+            
+            typing.style.display = 'block';
+
+            const res = await fetch('/api/chat', { 
+                method: 'POST', 
+                headers: {'Content-Type': 'application/json'}, 
+                body: JSON.stringify({ messages: chatHistory, lang: currentLang }) 
+            });
+            const data = await res.json();
+            
+            typing.style.display = 'none';
+            box.innerHTML += `<div class="msg ai">${data.reply}</div>`;
+            chatHistory.push({ role: "assistant", content: data.reply });
+            box.scrollTop = box.scrollHeight;
+        }
+    </script>
+</body>
+</html>
