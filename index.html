@@ -48,6 +48,9 @@
         .wo-table td { border-bottom: 1px solid #eee; padding: 10px; vertical-align: top; }
         .wo-row:nth-child(even) { background: #f9f9f9; }
 
+        /* Info Alert */
+        .info-alert { background: #e3f2fd; border: 1px solid #2196f3; color: #0d47a1; padding: 15px; border-radius: 10px; margin-bottom: 20px; font-size: 0.9rem; }
+
         /* Chat */
         #chat-box { height: 50vh; overflow-y: auto; background: #f4f6f8; padding: 15px; border-radius: 20px; border: 1px solid #eee; margin-bottom: 10px; }
         .msg { padding: 10px 15px; border-radius: 15px; margin-bottom: 10px; max-width: 85%; }
@@ -84,14 +87,12 @@
             <div style="display:flex; gap:10px;">
                 <input type="number" id="u-w" placeholder="الوزن (kg)">
                 <input type="number" id="u-h" placeholder="الطول (cm)">
-            </div>
-            <div style="display:flex; gap:10px;">
                 <input type="number" id="u-a" placeholder="العمر">
-                <select id="u-gender" style="flex:1">
-                    <option value="male" data-t="male">ذكر</option>
-                    <option value="female" data-t="female">أنثى</option>
-                </select>
             </div>
+            <select id="u-gender">
+                <option value="male" data-t="male">ذكر</option>
+                <option value="female" data-t="female">أنثى</option>
+            </select>
             
             <label style="color:var(--main); font-weight:bold;" data-t="inbody_label">نتائج InBody (اختياري)</label>
             <input type="number" id="u-bf" placeholder="%">
@@ -104,12 +105,18 @@
                 <option value="5" data-t="day_5">5 أيام (دفع/سحب/أرجل)</option>
             </select>
 
+            <label data-t="injury_label" style="font-weight:bold; color:#c0392b;">إصابات الملاعب</label>
+            <div class="check-group">
+                <label class="check-label"><input type="checkbox" class="inj" value="shoulder"> <span data-t="inj_sh">كتف</span></label>
+                <label class="check-label"><input type="checkbox" class="inj" value="knee"> <span data-t="inj_kn">ركبة</span></label>
+                <label class="check-label"><input type="checkbox" class="inj" value="back"> <span data-t="inj_bk">ظهر</span></label>
+            </div>
+
             <label data-t="med_label" style="font-weight:bold; color:var(--dark);">الأمراض المزمنة</label>
             <div class="check-group">
                 <label class="check-label"><input type="checkbox" class="med" value="diabetes"> <span data-t="med_diab">سكري</span></label>
                 <label class="check-label"><input type="checkbox" class="med" value="pressure"> <span data-t="med_bp">ضغط</span></label>
                 <label class="check-label"><input type="checkbox" class="med" value="pcos"> <span data-t="med_pcos">تكيس</span></label>
-                <label class="check-label"><input type="checkbox" class="med" value="thyroid"> <span data-t="med_thyr">غدة</span></label>
             </div>
 
             <label data-t="alg_label" style="font-weight:bold; color:var(--dark);">الحساسيات الغذائية</label>
@@ -156,6 +163,10 @@
             </div>
         </div>
 
+        <div class="info-alert" data-t="hydration_note">
+            💧 تذكير: اشرب 3-4 لتر ماء يومياً. إذا كنت تشرب القهوة، قللها لـ 200 ملغ (كوبين) لتجنب الجفاف.
+        </div>
+
         <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
             <h3 class="section-head" style="margin:0;" data-t="week_title">الجدول الأسبوعي</h3>
             <button class="btn-main" style="width:auto; padding:8px 15px; font-size:0.9rem;" onclick="window.print()" data-t="btn_print">🖨️ طباعة</button>
@@ -174,8 +185,12 @@
             </div>
         </div>
 
+        <div style="display:flex; justify-content:space-between; align-items:center; margin-bottom:10px;">
+            <div class="section-head" style="margin:0;"><i class="fas fa-dumbbell"></i> <span data-t="workout_title">جدول التمرين</span></div>
+            <button class="btn-main" style="width:auto; padding:5px 15px; font-size:0.8rem; margin:0;" onclick="window.print()" data-t="btn_print">🖨️</button>
+        </div>
+
         <div class="card">
-            <div class="section-head"><i class="fas fa-dumbbell"></i> <span data-t="workout_title">جدول التمرين</span></div>
             <div id="workout-info" style="margin-bottom:15px; font-weight:bold; color:#555;"></div>
             <table class="wo-table">
                 <thead><tr><th data-t="th_day">اليوم</th><th data-t="th_focus">التركيز</th><th data-t="th_ex">التمارين</th></tr></thead>
@@ -211,11 +226,9 @@
 
     <script>
         let currentLang = 'ar';
-        // Global status variables
         let currentStatusAr = "--";
         let currentStatusEn = "--";
 
-        // COMPLETE TRANSLATION DICTIONARY
         const txt = {
             profile_title: { ar: "الملف الشخصي", en: "Personal Profile" },
             male: { ar: "ذكر", en: "Male" },
@@ -226,24 +239,33 @@
             day_3: { ar: "3 أيام (كامل الجسم)", en: "3 Days (Full Body)" },
             day_4: { ar: "4 أيام (علوي/سفلي)", en: "4 Days (Upper/Lower)" },
             day_5: { ar: "5 أيام (دفع/سحب/أرجل)", en: "5 Days (PPL)" },
+            
             med_label: { ar: "الأمراض المزمنة", en: "Chronic Diseases" },
             med_diab: { ar: "سكري", en: "Diabetes" },
             med_bp: { ar: "ضغط", en: "Blood Pressure" },
             med_pcos: { ar: "تكيس", en: "PCOS" },
-            med_thyr: { ar: "غدة", en: "Thyroid" },
+            
+            injury_label: { ar: "إصابات الملاعب", en: "Workout Injuries" },
+            inj_sh: { ar: "كتف", en: "Shoulder" },
+            inj_kn: { ar: "ركبة", en: "Knee" },
+            inj_bk: { ar: "ظهر", en: "Back" },
+
             alg_label: { ar: "الحساسيات الغذائية", en: "Food Allergies" },
             alg_gluten: { ar: "غلوتين", en: "Gluten" },
             alg_lactose: { ar: "لاكتوز", en: "Lactose" },
             alg_nuts: { ar: "مكسرات", en: "Nuts" },
+            
             activity_label: { ar: "مستوى النشاط", en: "Activity Level" },
             act_1: { ar: "خامل", en: "Sedentary" },
             act_2: { ar: "خفيف", en: "Light" },
             act_3: { ar: "متوسط", en: "Moderate" },
             act_4: { ar: "عالي", en: "High" },
+            
             goal_label: { ar: "الهدف", en: "Goal" },
             goal_cut: { ar: "خسارة دهون", en: "Fat Loss" },
             goal_maint: { ar: "محافظة", en: "Maintenance" },
             goal_bulk: { ar: "بناء عضل", en: "Muscle Build" },
+            
             btn_gen: { ar: "إنشاء الخطة", en: "Generate Plan" },
             id_title: { ar: "🆔 البطاقة الصحية", en: "🆔 Health ID Card" },
             id_name: { ar: "الاسم:", en: "Name:" },
@@ -252,8 +274,14 @@
             id_diff: { ar: "للوصول للمثالي:", en: "To Ideal:" },
             id_status: { ar: "الحالة:", en: "Status:" },
             id_needs: { ar: "الاحتياج:", en: "Daily Needs:" },
+            
             week_title: { ar: "الجدول الأسبوعي", en: "Weekly Plan" },
             btn_print: { ar: "🖨️ طباعة", en: "🖨️ Print" },
+            hydration_note: { 
+                ar: "💧 تذكير: اشرب 3-4 لتر ماء يومياً. إذا كنت تشرب القهوة، قللها لـ 200 ملغ (كوبين) لتجنب الجفاف.", 
+                en: "💧 Reminder: Drink 3-4L water daily. Limit caffeine to 200mg (2 cups) to avoid dehydration." 
+            },
+            
             active_title: { ar: "نشاط اليوم", en: "Daily Activity" },
             active_label: { ar: "أدخل السعرات المحروقة:", en: "Enter Active Calories:" },
             btn_adjust: { ar: "تعديل", en: "Adjust" },
@@ -263,25 +291,25 @@
             th_ex: { ar: "التمارين", en: "Exercises" },
             update_title: { ar: "تحديث الوزن", en: "Update Weight" },
             btn_update: { ar: "تحديث", en: "Update" },
+            
             chat_title: { ar: "المستشار الذكي (AI)", en: "AI Advisor" },
             chat_welcome: { ar: "أهلاً بك! أنا دكتور أوليف.", en: "Welcome! I am Dr. Olive." },
             chat_typing: { ar: "جاري البحث...", en: "Searching..." },
+            
             w_rest: { ar: "راحة / نشاط يومي", en: "Rest / Daily Activity" },
             w_walk: { ar: "مشي 8,000 خطوة", en: "Walk 8,000 steps" },
-            w_upper: { ar: "علوي", en: "Upper Body" },
-            w_lower: { ar: "سفلي", en: "Lower Body" },
-            w_full: { ar: "شامل", en: "Full Body" },
+            
             m_break: { ar: "فطور", en: "Breakfast" },
             m_lunch: { ar: "غداء", en: "Lunch" },
             m_dinner: { ar: "عشاء", en: "Dinner" },
             m_snack: { ar: "سناك", en: "Snack" },
+            
             days: {
                 ar: ["السبت", "الأحد", "الاثنين", "الثلاثاء", "الأربعاء", "الخميس", "الجمعة"],
                 en: ["Sat", "Sun", "Mon", "Tue", "Wed", "Thu", "Fri"]
             }
         };
 
-        // --- SAFE TOGGLE FUNCTION (Prevents undefined) ---
         function toggleLang() {
             currentLang = currentLang === 'ar' ? 'en' : 'ar';
             document.documentElement.lang = currentLang;
@@ -295,14 +323,10 @@
 
             document.querySelectorAll('[data-t]').forEach(el => {
                 const k = el.getAttribute('data-t');
-                // Only update if translation exists, otherwise keep current text
-                if(txt[k] && txt[k][currentLang]) {
-                    el.innerText = txt[k][currentLang];
-                }
+                if(txt[k]) el.innerText = txt[k][currentLang];
             });
 
-            // Update Status safely
-            if(currentStatusAr !== "--" && currentStatusEn !== "--") {
+            if(currentStatusAr !== "--") {
                 document.getElementById('id-status').innerText = currentLang === 'ar' ? currentStatusAr : currentStatusEn;
             }
 
@@ -348,7 +372,6 @@
                 const data = await res.json();
                 baseTDEE = data.cals;
 
-                // Save statuses for toggle
                 currentStatusAr = data.status_ar || "--";
                 currentStatusEn = data.status_en || "--";
 
@@ -368,7 +391,7 @@
                 renderDynamicWorkout();
                 nav('pg-food', document.querySelectorAll('.nav-item')[1]);
             } catch(e) {
-                alert("Server Connection Error.");
+                alert("Server Error. Please try again.");
             }
         }
 
@@ -394,32 +417,41 @@
         function renderDynamicWorkout() {
             const freq = document.getElementById('u-days').value;
             const tbody = document.getElementById('wo-body');
-            const info = document.getElementById('workout-info');
             tbody.innerHTML = "";
             let schedule = [];
             const dNames = txt.days[currentLang];
+            
+            // Collect Injuries
+            const injuries = Array.from(document.querySelectorAll('.inj:checked')).map(c => c.value);
+
+            // Exercise Definitions (Simplified Logic for replacement)
+            const ex = {
+                squat: injuries.includes('knee') ? "Glute Bridges (3x15)" : "Squats (3x10)",
+                lunges: injuries.includes('knee') ? "Clam Shells (3x15)" : "Lunges (3x12)",
+                ohp: injuries.includes('shoulder') ? "Lateral Raises (3x12)" : "Overhead Press (3x10)",
+                bench: injuries.includes('shoulder') ? "Floor Press (3x10)" : "Bench Press (3x10)",
+                deadlift: injuries.includes('back') ? "Lat Pulldowns (3x12)" : "Deadlift (3x8)",
+                rows: injuries.includes('back') ? "Chest Supported Row (3x12)" : "Barbell Rows (3x10)"
+            };
 
             if(freq == "0") {
-                info.innerText = currentLang === 'ar' ? "بدون تمرين (نشاط حركي)" : "No Gym (Daily Activity)";
                 schedule = dNames.map(d => ({d: d, f: txt.w_rest[currentLang], ex: txt.w_walk[currentLang]}));
             } else if(freq == "3") {
-                info.innerText = "3 Days (Full Body)";
                 schedule = [
-                    {d: dNames[0], f: txt.w_full[currentLang], ex: "Squats, Bench, Rows"},
+                    {d: dNames[0], f: "Full Body A", ex: `${ex.squat}, ${ex.bench}, ${ex.rows}`},
                     {d: dNames[1], f: "Rest", ex: "Walk"},
-                    {d: dNames[2], f: txt.w_full[currentLang], ex: "Deadlift, OHP, Pullups"},
+                    {d: dNames[2], f: "Full Body B", ex: `${ex.deadlift}, ${ex.ohp}, Pullups (3xMax)`},
                     {d: dNames[3], f: "Rest", ex: "Walk"},
-                    {d: dNames[4], f: txt.w_full[currentLang], ex: "Lunges, Dips"},
+                    {d: dNames[4], f: "Full Body C", ex: `${ex.lunges}, Dips (3x10)`},
                     {d: dNames[5], f: "Cardio", ex: "30 min Run"},
                     {d: dNames[6], f: "Rest", ex: "Recovery"}
                 ];
             } else {
-                info.innerText = "Split Routine (Upper/Lower)";
-                schedule = dNames.map(d => ({d: d, f: "Mixed", ex: "Custom Routine"})); 
+                schedule = dNames.map(d => ({d: d, f: "Mixed Split", ex: `${ex.bench}, ${ex.rows}, ${ex.squat}`}));
             }
 
             schedule.forEach(s => {
-                tbody.innerHTML += `<tr class="wo-row"><td>${s.d}</td><td style="color:var(--main); font-weight:bold;">${s.f}</td><td>${s.ex}</td></tr>`;
+                tbody.innerHTML += `<tr class="wo-row"><td>${s.d}</td><td style="color:var(--main); font-weight:bold;">${s.f}</td><td style="font-size:0.85rem;">${s.ex}</td></tr>`;
             });
         }
 
