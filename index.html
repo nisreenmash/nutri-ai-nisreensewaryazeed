@@ -103,6 +103,7 @@
                 <option value="3" data-t="day_3">3 أيام (كامل الجسم)</option>
                 <option value="4" data-t="day_4">4 أيام (علوي/سفلي)</option>
                 <option value="5" data-t="day_5">5 أيام (دفع/سحب/أرجل)</option>
+                <option value="6" data-t="day_6">6 أيام (دفع/سحب/أرجل x2)</option>
             </select>
 
             <label data-t="injury_label" style="font-weight:bold; color:#c0392b;">إصابات الملاعب</label>
@@ -239,6 +240,7 @@
             day_3: { ar: "3 أيام (كامل الجسم)", en: "3 Days (Full Body)" },
             day_4: { ar: "4 أيام (علوي/سفلي)", en: "4 Days (Upper/Lower)" },
             day_5: { ar: "5 أيام (دفع/سحب/أرجل)", en: "5 Days (PPL)" },
+            day_6: { ar: "6 أيام (دفع/سحب/أرجل x2)", en: "6 Days (PPL x2)" },
             
             med_label: { ar: "الأمراض المزمنة", en: "Chronic Diseases" },
             med_diab: { ar: "سكري", en: "Diabetes" },
@@ -296,8 +298,8 @@
             chat_welcome: { ar: "أهلاً بك! أنا دكتور أوليف.", en: "Welcome! I am Dr. Olive." },
             chat_typing: { ar: "جاري البحث...", en: "Searching..." },
             
-            w_rest: { ar: "راحة / نشاط يومي", en: "Rest / Daily Activity" },
-            w_walk: { ar: "مشي 8,000 خطوة", en: "Walk 8,000 steps" },
+            w_rest: { ar: "راحة", en: "Rest" },
+            w_walk: { ar: "مشي خفيف", en: "Light Walk" },
             
             m_break: { ar: "فطور", en: "Breakfast" },
             m_lunch: { ar: "غداء", en: "Lunch" },
@@ -421,33 +423,136 @@
             let schedule = [];
             const dNames = txt.days[currentLang];
             
-            // Collect Injuries
+            // 1. Collect Injuries
             const injuries = Array.from(document.querySelectorAll('.inj:checked')).map(c => c.value);
 
-            // Exercise Definitions (Simplified Logic for replacement)
-            const ex = {
-                squat: injuries.includes('knee') ? "Glute Bridges (3x15)" : "Squats (3x10)",
-                lunges: injuries.includes('knee') ? "Clam Shells (3x15)" : "Lunges (3x12)",
-                ohp: injuries.includes('shoulder') ? "Lateral Raises (3x12)" : "Overhead Press (3x10)",
-                bench: injuries.includes('shoulder') ? "Floor Press (3x10)" : "Bench Press (3x10)",
-                deadlift: injuries.includes('back') ? "Lat Pulldowns (3x12)" : "Deadlift (3x8)",
-                rows: injuries.includes('back') ? "Chest Supported Row (3x12)" : "Barbell Rows (3x10)"
-            };
+            // 2. Define Exercises with Variations & Injury Substitutions
+            // Basic Maps
+            const safeEx = (name, injType, sub) => injuries.includes(injType) ? sub : name;
+
+            // Full Body A
+            const fbA = [
+                safeEx("Squat (3x10)", "knee", "Glute Bridges (3x15)"),
+                safeEx("Bench Press (3x10)", "shoulder", "Floor Press (3x10)"),
+                safeEx("Barbell Rows (3x10)", "back", "Chest Supported Row (3x12)")
+            ].join(", ");
+
+            // Full Body B
+            const fbB = [
+                safeEx("Deadlift (3x8)", "back", "Lat Pulldown (3x12)"),
+                safeEx("Overhead Press (3x10)", "shoulder", "Lateral Raises (3x15)"),
+                "Pullups (3xMax)"
+            ].join(", ");
+
+            // Full Body C
+            const fbC = [
+                safeEx("Lunges (3x12)", "knee", "Clam Shells (3x15)"),
+                safeEx("Dips (3x10)", "shoulder", "Tricep Pushdown (3x12)"),
+                "Face Pulls (3x15)"
+            ].join(", ");
+
+            // Upper A
+            const upA = [
+                safeEx("Bench Press (3x8)", "shoulder", "Floor Press (3x10)"),
+                safeEx("Barbell Row (3x10)", "back", "Cable Row (3x12)"),
+                safeEx("Overhead Press (3x10)", "shoulder", "Lateral Raise (3x15)")
+            ].join(", ");
+
+            // Upper B
+            const upB = [
+                safeEx("Incline Dumbbell Press (3x10)", "shoulder", "Pushups (3xMax)"),
+                "Lat Pulldown (3x12)",
+                "Bicep Curls (3x12)"
+            ].join(", ");
+
+            // Lower A
+            const lowA = [
+                safeEx("Squat (3x8)", "knee", "Goblet Squat (3x12)"),
+                safeEx("Romanian Deadlift (3x10)", "back", "Leg Curl (3x12)"),
+                "Calf Raises (3x15)"
+            ].join(", ");
+
+            // Lower B
+            const lowB = [
+                safeEx("Leg Press (3x10)", "knee", "Glute Bridge (3x15)"),
+                safeEx("Lunges (3x12)", "knee", "Step Ups (3x12)"),
+                "Leg Extensions (3x15)"
+            ].join(", ");
+
+            // PPL Modules
+            const push = [
+                safeEx("Bench Press (3x8)", "shoulder", "Floor Press"),
+                safeEx("Overhead Press (3x10)", "shoulder", "Lateral Raise"),
+                safeEx("Dips (3x10)", "shoulder", "Tricep Pushdown")
+            ].join(", ");
+
+            const pull = [
+                safeEx("Deadlift (3x6)", "back", "Lat Pulldown"),
+                safeEx("Barbell Row (3x10)", "back", "Chest Supported Row"),
+                "Face Pulls (3x15)"
+            ].join(", ");
+
+            const legs = [
+                safeEx("Squat (3x8)", "knee", "Leg Press"),
+                safeEx("Lunges (3x12)", "knee", "Hamstring Curl"),
+                "Calf Raises (4x15)"
+            ].join(", ");
+
+
+            // 3. Build Schedule based on Frequency
+            const restTxt = txt.w_rest[currentLang];
+            const walkTxt = txt.w_walk[currentLang];
 
             if(freq == "0") {
-                schedule = dNames.map(d => ({d: d, f: txt.w_rest[currentLang], ex: txt.w_walk[currentLang]}));
-            } else if(freq == "3") {
+                schedule = dNames.map(d => ({d: d, f: restTxt, ex: walkTxt}));
+            } 
+            else if(freq == "3") {
+                // Full Body Split: Sat, Mon, Wed
                 schedule = [
-                    {d: dNames[0], f: "Full Body A", ex: `${ex.squat}, ${ex.bench}, ${ex.rows}`},
-                    {d: dNames[1], f: "Rest", ex: "Walk"},
-                    {d: dNames[2], f: "Full Body B", ex: `${ex.deadlift}, ${ex.ohp}, Pullups (3xMax)`},
-                    {d: dNames[3], f: "Rest", ex: "Walk"},
-                    {d: dNames[4], f: "Full Body C", ex: `${ex.lunges}, Dips (3x10)`},
+                    {d: dNames[0], f: "Full Body A", ex: fbA},
+                    {d: dNames[1], f: restTxt, ex: walkTxt},
+                    {d: dNames[2], f: "Full Body B", ex: fbB},
+                    {d: dNames[3], f: restTxt, ex: walkTxt},
+                    {d: dNames[4], f: "Full Body C", ex: fbC},
                     {d: dNames[5], f: "Cardio", ex: "30 min Run"},
-                    {d: dNames[6], f: "Rest", ex: "Recovery"}
+                    {d: dNames[6], f: restTxt, ex: "Recovery"}
                 ];
-            } else {
-                schedule = dNames.map(d => ({d: d, f: "Mixed Split", ex: `${ex.bench}, ${ex.rows}, ${ex.squat}`}));
+            } 
+            else if(freq == "4") {
+                // Upper/Lower Split: Sat, Sun, Tue, Wed
+                schedule = [
+                    {d: dNames[0], f: "Upper A", ex: upA},
+                    {d: dNames[1], f: "Lower A", ex: lowA},
+                    {d: dNames[2], f: restTxt, ex: walkTxt},
+                    {d: dNames[3], f: "Upper B", ex: upB},
+                    {d: dNames[4], f: "Lower B", ex: lowB},
+                    {d: dNames[5], f: restTxt, ex: walkTxt},
+                    {d: dNames[6], f: restTxt, ex: "Recovery"}
+                ];
+            }
+            else if(freq == "5") {
+                // Hybrid: PPL + Upper/Lower
+                schedule = [
+                    {d: dNames[0], f: "Push", ex: push},
+                    {d: dNames[1], f: "Pull", ex: pull},
+                    {d: dNames[2], f: "Legs", ex: legs},
+                    {d: dNames[3], f: restTxt, ex: walkTxt},
+                    {d: dNames[4], f: "Upper", ex: upA},
+                    {d: dNames[5], f: "Lower", ex: lowA},
+                    {d: dNames[6], f: restTxt, ex: "Recovery"}
+                ];
+            }
+            else { // 6 Days
+                // PPL x2
+                schedule = [
+                    {d: dNames[0], f: "Push A", ex: push},
+                    {d: dNames[1], f: "Pull A", ex: pull},
+                    {d: dNames[2], f: "Legs A", ex: legs},
+                    {d: dNames[3], f: "Push B", ex: push.replace("Bench", "Incline")}, // Variation
+                    {d: dNames[4], f: "Pull B", ex: pull.replace("Deadlift", "Pullups")}, // Variation
+                    {d: dNames[5], f: "Legs B", ex: legs.replace("Squat", "Front Squat")}, // Variation
+                    {d: dNames[6], f: restTxt, ex: "Recovery"}
+                ];
             }
 
             schedule.forEach(s => {
