@@ -94,8 +94,8 @@
                 <option value="female" data-t="female">أنثى</option>
             </select>
             
-            <label style="color:var(--main); font-weight:bold;" data-t="inbody_label">نتائج InBody (اختياري)</label>
-            <input type="number" id="u-bf" placeholder="%">
+            <label style="color:var(--main); font-weight:bold;" data-t="inbody_label">نسبة الدهون (من InBody - اختياري)</label>
+            <input type="number" id="u-bf" placeholder="e.g. 20">
             
             <label data-t="days_label">أيام التمرين</label>
             <select id="u-days">
@@ -234,7 +234,9 @@
             profile_title: { ar: "الملف الشخصي", en: "Personal Profile" },
             male: { ar: "ذكر", en: "Male" },
             female: { ar: "أنثى", en: "Female" },
-            inbody_label: { ar: "نتائج InBody (اختياري)", en: "InBody Results (Optional)" },
+            // SPECIFIC INBODY LABEL
+            inbody_label: { ar: "نسبة الدهون (من InBody - اختياري)", en: "Body Fat % (from InBody - Optional)" },
+            
             days_label: { ar: "أيام التمرين", en: "Workout Days" },
             day_0: { ar: "0 أيام (بدون تمرين)", en: "0 Days (No Workout)" },
             day_3: { ar: "3 أيام (كامل الجسم)", en: "3 Days (Full Body)" },
